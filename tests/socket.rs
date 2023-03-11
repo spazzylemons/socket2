@@ -13,7 +13,7 @@
 ))]
 use std::fs::File;
 use std::io;
-#[cfg(not(target_os = "redox"))]
+#[cfg(not(any(target_os = "redox", target_os = "horizon")))]
 use std::io::IoSlice;
 use std::io::Read;
 use std::io::Write;
@@ -48,7 +48,7 @@ use std::{env, fs};
 #[cfg(windows)]
 use windows_sys::Win32::Foundation::{GetHandleInformation, HANDLE_FLAG_INHERIT};
 
-#[cfg(not(target_os = "redox"))]
+#[cfg(not(any(target_os = "redox", target_os = "horizon")))]
 use socket2::MaybeUninitSlice;
 use socket2::{Domain, Protocol, SockAddr, Socket, TcpKeepalive, Type};
 
@@ -91,9 +91,9 @@ fn type_fmt_debug() {
     let tests = &[
         (Type::STREAM, "SOCK_STREAM"),
         (Type::DGRAM, "SOCK_DGRAM"),
-        #[cfg(feature = "all")]
+        #[cfg(all(feature = "all", not(target_os = "horizon")))]
         (Type::SEQPACKET, "SOCK_SEQPACKET"),
-        #[cfg(all(feature = "all", not(target_os = "redox")))]
+        #[cfg(all(feature = "all", not(any(target_os = "redox", target_os = "horizon"))))]
         (Type::RAW, "SOCK_RAW"),
         (500.into(), "500"),
     ];
@@ -605,7 +605,7 @@ fn udp_peek_sender() {
 }
 
 #[test]
-#[cfg(not(target_os = "redox"))]
+#[cfg(not(any(target_os = "redox", target_os = "horizon")))]
 fn send_recv_vectored() {
     let (socket_a, socket_b) = udp_pair_connected();
 
@@ -652,7 +652,7 @@ fn send_recv_vectored() {
 }
 
 #[test]
-#[cfg(not(target_os = "redox"))]
+#[cfg(not(any(target_os = "redox", target_os = "horizon")))]
 fn send_from_recv_to_vectored() {
     let (socket_a, socket_b) = udp_pair_unconnected();
     let addr_a = socket_a.local_addr().unwrap();
@@ -701,7 +701,7 @@ fn send_from_recv_to_vectored() {
 }
 
 #[test]
-#[cfg(not(target_os = "redox"))]
+#[cfg(not(any(target_os = "redox", target_os = "horizon")))]
 fn recv_vectored_truncated() {
     let (socket_a, socket_b) = udp_pair_connected();
 
@@ -721,7 +721,7 @@ fn recv_vectored_truncated() {
 }
 
 #[test]
-#[cfg(not(target_os = "redox"))]
+#[cfg(not(any(target_os = "redox", target_os = "horizon")))]
 fn recv_from_vectored_truncated() {
     let (socket_a, socket_b) = udp_pair_unconnected();
     let addr_a = socket_a.local_addr().unwrap();
@@ -775,7 +775,7 @@ fn udp_pair_unconnected() -> (Socket, Socket) {
 }
 
 /// Create a pair of connected UDP sockets suitable for unit tests.
-#[cfg(not(target_os = "redox"))]
+#[cfg(not(any(target_os = "redox", target_os = "horizon")))]
 fn udp_pair_connected() -> (Socket, Socket) {
     let (socket_a, socket_b) = udp_pair_unconnected();
 
@@ -1115,6 +1115,7 @@ fn r#type() {
             target_os = "macos",
             target_os = "tvos",
             target_os = "watchos",
+            target_os = "horizon",
         )),
         feature = "all",
     ))]
@@ -1288,6 +1289,7 @@ test!(IPv4 tos, set_tos(96));
     target_os = "redox",
     target_os = "solaris",
     target_os = "windows",
+    target_os = "horizon",
 )))]
 test!(IPv4 recv_tos, set_recv_tos(true));
 
@@ -1330,6 +1332,7 @@ test!(IPv6 tclass_v6, set_tclass_v6(96));
     target_os = "redox",
     target_os = "solaris",
     target_os = "windows",
+    target_os = "horizon",
 )))]
 test!(IPv6 recv_tclass_v6, set_recv_tclass_v6(true));
 
@@ -1350,6 +1353,7 @@ test!(
     target_os = "openbsd",
     target_os = "redox",
     target_os = "solaris",
+    target_os = "horizon",
 )))]
 fn join_leave_multicast_v4_n() {
     let socket = Socket::new(Domain::IPV4, Type::DGRAM, None).unwrap();
@@ -1379,6 +1383,7 @@ fn join_leave_multicast_v4_n() {
     target_os = "openbsd",
     target_os = "redox",
     target_os = "fuchsia",
+    target_os = "horizon",
 )))]
 fn join_leave_ssm_v4() {
     let socket = Socket::new(Domain::IPV4, Type::DGRAM, None).unwrap();
@@ -1390,7 +1395,7 @@ fn join_leave_ssm_v4() {
 }
 
 #[test]
-#[cfg(all(feature = "all", not(target_os = "redox")))]
+#[cfg(all(feature = "all", not(any(target_os = "redox", target_os = "horizon"))))]
 fn header_included() {
     let socket = match Socket::new(Domain::IPV4, Type::RAW, None) {
         Ok(socket) => socket,

@@ -264,13 +264,16 @@ impl Type {
     pub const DCCP: Type = Type(sys::SOCK_DCCP);
 
     /// Type corresponding to `SOCK_SEQPACKET`.
-    #[cfg(feature = "all")]
-    #[cfg_attr(docsrs, doc(cfg(feature = "all")))]
+    #[cfg(all(feature = "all", not(target_os = "horizon")))]
+    #[cfg_attr(docsrs, doc(cfg(all(feature = "all", not(target_os = "horizon")))))]
     pub const SEQPACKET: Type = Type(sys::SOCK_SEQPACKET);
 
     /// Type corresponding to `SOCK_RAW`.
-    #[cfg(all(feature = "all", not(target_os = "redox")))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "all", not(target_os = "redox")))))]
+    #[cfg(all(feature = "all", not(any(target_os = "redox", target_os = "horizon"))))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "all", not(any(target_os = "redox", target_os = "horizon")))))
+    )]
     pub const RAW: Type = Type(sys::SOCK_RAW);
 }
 
@@ -338,12 +341,12 @@ impl From<Protocol> for c_int {
 /// Flags for incoming messages.
 ///
 /// Flags provide additional information about incoming messages.
-#[cfg(not(target_os = "redox"))]
-#[cfg_attr(docsrs, doc(cfg(not(target_os = "redox"))))]
+#[cfg(not(any(target_os = "redox", target_os = "horizon")))]
+#[cfg_attr(docsrs, doc(cfg(not(any(target_os = "redox", target_os = "horizon")))))]
 #[derive(Copy, Clone, Eq, PartialEq)]
 pub struct RecvFlags(c_int);
 
-#[cfg(not(target_os = "redox"))]
+#[cfg(not(any(target_os = "redox", target_os = "horizon")))]
 impl RecvFlags {
     /// Check if the message contains a truncated datagram.
     ///
@@ -406,6 +409,7 @@ pub struct TcpKeepalive {
         target_os = "redox",
         target_os = "solaris",
         target_os = "nto",
+        target_os = "horizon",
     )))]
     interval: Option<Duration>,
     #[cfg(not(any(
@@ -414,6 +418,7 @@ pub struct TcpKeepalive {
         target_os = "solaris",
         target_os = "windows",
         target_os = "nto",
+        target_os = "horizon",
     )))]
     retries: Option<u32>,
 }
@@ -428,6 +433,7 @@ impl TcpKeepalive {
                 target_os = "redox",
                 target_os = "solaris",
                 target_os = "nto",
+                target_os = "horizon",
             )))]
             interval: None,
             #[cfg(not(any(
@@ -436,6 +442,7 @@ impl TcpKeepalive {
                 target_os = "solaris",
                 target_os = "windows",
                 target_os = "nto",
+                target_os = "horizon",
             )))]
             retries: None,
         }

@@ -191,7 +191,7 @@ impl SockAddr {
     }
 
     /// Returns a raw pointer to the address storage.
-    #[cfg(all(unix, not(target_os = "redox")))]
+    #[cfg(all(unix, not(any(target_os = "redox", target_os = "horizon"))))]
     pub(crate) const fn as_storage_ptr(&self) -> *const sockaddr_storage {
         &self.storage
     }
@@ -265,7 +265,10 @@ impl From<SocketAddrV4> for SockAddr {
             storage.sin_family = AF_INET as sa_family_t;
             storage.sin_port = addr.port().to_be();
             storage.sin_addr = crate::sys::to_in_addr(addr.ip());
-            storage.sin_zero = Default::default();
+            #[cfg(not(target_os = "horizon"))]
+            {
+                storage.sin_zero = Default::default();
+            }
             mem::size_of::<sockaddr_in>() as socklen_t
         };
         SockAddr { storage, len }

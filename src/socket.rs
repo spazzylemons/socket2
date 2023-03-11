@@ -8,7 +8,7 @@
 
 use std::fmt;
 use std::io::{self, Read, Write};
-#[cfg(not(target_os = "redox"))]
+#[cfg(not(any(target_os = "redox", target_os = "horizon")))]
 use std::io::{IoSlice, IoSliceMut};
 use std::mem::MaybeUninit;
 #[cfg(not(target_os = "nto"))]
@@ -22,7 +22,7 @@ use std::time::Duration;
 
 use crate::sys::{self, c_int, getsockopt, setsockopt, Bool};
 use crate::{Domain, Protocol, SockAddr, TcpKeepalive, Type};
-#[cfg(not(target_os = "redox"))]
+#[cfg(not(any(target_os = "redox", target_os = "horizon")))]
 use crate::{MaybeUninitSlice, RecvFlags};
 
 /// Owned wrapper around a system socket.
@@ -468,8 +468,8 @@ impl Socket {
     /// Note that the [`io::Read::read_vectored`] implementation calls this
     /// function with `buf`s of type `&mut [IoSliceMut]`, allowing initialised
     /// buffers to be used without using `unsafe`.
-    #[cfg(not(target_os = "redox"))]
-    #[cfg_attr(docsrs, doc(cfg(not(target_os = "redox"))))]
+    #[cfg(not(any(target_os = "redox", target_os = "horizon")))]
+    #[cfg_attr(docsrs, doc(cfg(not(any(target_os = "redox", target_os = "horizon")))))]
     pub fn recv_vectored(
         &self,
         bufs: &mut [MaybeUninitSlice<'_>],
@@ -488,8 +488,8 @@ impl Socket {
     /// as [`recv_vectored`].
     ///
     /// [`recv_vectored`]: Socket::recv_vectored
-    #[cfg(not(target_os = "redox"))]
-    #[cfg_attr(docsrs, doc(cfg(not(target_os = "redox"))))]
+    #[cfg(not(any(target_os = "redox", target_os = "horizon")))]
+    #[cfg_attr(docsrs, doc(cfg(not(any(target_os = "redox", target_os = "horizon")))))]
     pub fn recv_vectored_with_flags(
         &self,
         bufs: &mut [MaybeUninitSlice<'_>],
@@ -554,8 +554,8 @@ impl Socket {
     /// as [`recv_vectored`].
     ///
     /// [`recv_vectored`]: Socket::recv_vectored
-    #[cfg(not(target_os = "redox"))]
-    #[cfg_attr(docsrs, doc(cfg(not(target_os = "redox"))))]
+    #[cfg(not(any(target_os = "redox", target_os = "horizon")))]
+    #[cfg_attr(docsrs, doc(cfg(not(any(target_os = "redox", target_os = "horizon")))))]
     pub fn recv_from_vectored(
         &self,
         bufs: &mut [MaybeUninitSlice<'_>],
@@ -574,8 +574,8 @@ impl Socket {
     /// as [`recv_vectored`].
     ///
     /// [`recv_vectored`]: Socket::recv_vectored
-    #[cfg(not(target_os = "redox"))]
-    #[cfg_attr(docsrs, doc(cfg(not(target_os = "redox"))))]
+    #[cfg(not(any(target_os = "redox", target_os = "horizon")))]
+    #[cfg_attr(docsrs, doc(cfg(not(any(target_os = "redox", target_os = "horizon")))))]
     pub fn recv_from_vectored_with_flags(
         &self,
         bufs: &mut [MaybeUninitSlice<'_>],
@@ -647,8 +647,8 @@ impl Socket {
     }
 
     /// Send data to the connected peer. Returns the amount of bytes written.
-    #[cfg(not(target_os = "redox"))]
-    #[cfg_attr(docsrs, doc(cfg(not(target_os = "redox"))))]
+    #[cfg(not(any(target_os = "redox", target_os = "horizon")))]
+    #[cfg_attr(docsrs, doc(cfg(not(any(target_os = "redox", target_os = "horizon")))))]
     pub fn send_vectored(&self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
         self.send_vectored_with_flags(bufs, 0)
     }
@@ -658,8 +658,8 @@ impl Socket {
     #[doc = man_links!(sendmsg(2))]
     ///
     /// [`send_vectored`]: Socket::send_vectored
-    #[cfg(not(target_os = "redox"))]
-    #[cfg_attr(docsrs, doc(cfg(not(target_os = "redox"))))]
+    #[cfg(not(any(target_os = "redox", target_os = "horizon")))]
+    #[cfg_attr(docsrs, doc(cfg(not(any(target_os = "redox", target_os = "horizon")))))]
     pub fn send_vectored_with_flags(
         &self,
         bufs: &[IoSlice<'_>],
@@ -705,8 +705,8 @@ impl Socket {
     /// Send data to a peer listening on `addr`. Returns the amount of bytes
     /// written.
     #[doc = man_links!(sendmsg(2))]
-    #[cfg(not(target_os = "redox"))]
-    #[cfg_attr(docsrs, doc(cfg(not(target_os = "redox"))))]
+    #[cfg(not(any(target_os = "redox", target_os = "horizon")))]
+    #[cfg_attr(docsrs, doc(cfg(not(any(target_os = "redox", target_os = "horizon")))))]
     pub fn send_to_vectored(&self, bufs: &[IoSlice<'_>], addr: &SockAddr) -> io::Result<usize> {
         self.send_to_vectored_with_flags(bufs, addr, 0)
     }
@@ -715,8 +715,8 @@ impl Socket {
     /// arbitrary flags to the underlying `sendmsg`/`WSASendTo` call.
     ///
     /// [`send_to_vectored`]: Socket::send_to_vectored
-    #[cfg(not(target_os = "redox"))]
-    #[cfg_attr(docsrs, doc(cfg(not(target_os = "redox"))))]
+    #[cfg(not(any(target_os = "redox", target_os = "horizon")))]
+    #[cfg_attr(docsrs, doc(cfg(not(any(target_os = "redox", target_os = "horizon")))))]
     pub fn send_to_vectored_with_flags(
         &self,
         bufs: &[IoSlice<'_>],
@@ -767,6 +767,8 @@ fn set_common_flags(socket: Socket) -> io::Result<Socket> {
             target_os = "linux",
             target_os = "netbsd",
             target_os = "openbsd",
+            // don't set CLOEXEC on 3DS as it's unsupported
+            target_os = "horizon",
         ))
     ))]
     socket._set_cloexec(true)?;
@@ -1085,8 +1087,11 @@ impl Socket {
     /// For more information about this option, see [`set_header_included`].
     ///
     /// [`set_header_included`]: Socket::set_header_included
-    #[cfg(all(feature = "all", not(target_os = "redox")))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "all", not(target_os = "redox")))))]
+    #[cfg(all(feature = "all", not(any(target_os = "redox", target_os = "horizon"))))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "all", not(any(target_os = "redox", target_os = "horizon")))))
+    )]
     pub fn header_included(&self) -> io::Result<bool> {
         unsafe {
             getsockopt::<c_int>(self.as_raw(), sys::IPPROTO_IP, sys::IP_HDRINCL)
@@ -1109,8 +1114,11 @@ impl Socket {
         any(target_os = "illumos", target_os = "solaris"),
         allow(rustdoc::broken_intra_doc_links)
     )]
-    #[cfg(all(feature = "all", not(target_os = "redox")))]
-    #[cfg_attr(docsrs, doc(cfg(all(feature = "all", not(target_os = "redox")))))]
+    #[cfg(all(feature = "all", not(any(target_os = "redox", target_os = "horizon"))))]
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "all", not(any(target_os = "redox", target_os = "horizon")))))
+    )]
     pub fn set_header_included(&self, included: bool) -> io::Result<()> {
         unsafe {
             setsockopt(
@@ -1214,6 +1222,7 @@ impl Socket {
         target_os = "redox",
         target_os = "solaris",
         target_os = "nto",
+        target_os = "horizon",
     )))]
     pub fn join_multicast_v4_n(
         &self,
@@ -1245,6 +1254,7 @@ impl Socket {
         target_os = "redox",
         target_os = "solaris",
         target_os = "nto",
+        target_os = "horizon",
     )))]
     pub fn leave_multicast_v4_n(
         &self,
@@ -1277,6 +1287,7 @@ impl Socket {
         target_os = "redox",
         target_os = "fuchsia",
         target_os = "nto",
+        target_os = "horizon",
     )))]
     pub fn join_ssm_v4(
         &self,
@@ -1312,6 +1323,7 @@ impl Socket {
         target_os = "redox",
         target_os = "fuchsia",
         target_os = "nto",
+        target_os = "horizon",
     )))]
     pub fn leave_ssm_v4(
         &self,
@@ -1489,6 +1501,7 @@ impl Socket {
         target_os = "solaris",
         target_os = "haiku",
         target_os = "nto",
+        target_os = "horizon",
     )))]
     pub fn set_recv_tos(&self, recv_tos: bool) -> io::Result<()> {
         unsafe {
@@ -1517,6 +1530,7 @@ impl Socket {
         target_os = "solaris",
         target_os = "haiku",
         target_os = "nto",
+        target_os = "horizon",
     )))]
     pub fn recv_tos(&self) -> io::Result<bool> {
         unsafe {
@@ -1732,6 +1746,7 @@ impl Socket {
         target_os = "redox",
         target_os = "solaris",
         target_os = "haiku",
+        target_os = "horizon",
     )))]
     pub fn recv_tclass_v6(&self) -> io::Result<bool> {
         unsafe {
@@ -1754,6 +1769,7 @@ impl Socket {
         target_os = "redox",
         target_os = "solaris",
         target_os = "haiku",
+        target_os = "horizon",
     )))]
     pub fn set_recv_tclass_v6(&self, recv_tclass: bool) -> io::Result<()> {
         unsafe {
@@ -1968,7 +1984,7 @@ impl Read for Socket {
         self.recv(buf)
     }
 
-    #[cfg(not(target_os = "redox"))]
+    #[cfg(not(any(target_os = "redox", target_os = "horizon")))]
     fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
         // Safety: both `IoSliceMut` and `MaybeUninitSlice` promise to have the
         // same layout, that of `iovec`/`WSABUF`. Furthermore `recv_vectored`
@@ -1986,7 +2002,7 @@ impl<'a> Read for &'a Socket {
         self.recv(buf)
     }
 
-    #[cfg(not(target_os = "redox"))]
+    #[cfg(not(any(target_os = "redox", target_os = "horizon")))]
     fn read_vectored(&mut self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
         // Safety: see other `Read::read` impl.
         let bufs = unsafe { &mut *(bufs as *mut [IoSliceMut<'_>] as *mut [MaybeUninitSlice<'_>]) };
@@ -1999,7 +2015,7 @@ impl Write for Socket {
         self.send(buf)
     }
 
-    #[cfg(not(target_os = "redox"))]
+    #[cfg(not(any(target_os = "redox", target_os = "horizon")))]
     fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
         self.send_vectored(bufs)
     }
@@ -2014,7 +2030,7 @@ impl<'a> Write for &'a Socket {
         self.send(buf)
     }
 
-    #[cfg(not(target_os = "redox"))]
+    #[cfg(not(any(target_os = "redox", target_os = "horizon")))]
     fn write_vectored(&mut self, bufs: &[IoSlice<'_>]) -> io::Result<usize> {
         self.send_vectored(bufs)
     }

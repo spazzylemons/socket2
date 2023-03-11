@@ -62,6 +62,7 @@ feature flag.
 * NetBSD
 * Redox
 * Solaris
+* Horizon (Nintendo 3DS)
 
 # Minimum Supported Rust Version (MSRV)
 
